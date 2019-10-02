@@ -3,6 +3,8 @@ open import Data.List
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Formalisation using (⊥; ex-falso)
 open import Data.Star
+open import Data.Product renaming (_×_ to _∧_)
+open import Data.Sum
 
 module Translation (dcc : DCC) where
 
@@ -143,17 +145,18 @@ false' : Exp [] bool'
 false' = ι₁ <>'
 
 postulate DCC-strongly-normalising : ∀ l -> (e : Exp [] (T' l bool')) -> (e ⟶* η' true') + (e ⟶* η' false')
-postulate DCC-confluent : ∀ {t} -> {e e1 e2 : Exp [] t} ->  e1 ⟶* e -> e2 ⟶* e -> e1 ⟶* e2
 
+_β≡_ : ∀{t} → Exp [] t → Exp [] t → Set
+e₁ β≡ e₂ = ∃[ e ] (e₁ ⟶* e ∧ e₂ ⟶* e)
 
 done : ∀ {l} -> η {l} (inr <>) ≡ η (inl <>) -> ⊥
 done p with η-inj p
 done p | ()
 
-corro7 : ∀ l (e e' : Exp [] (T' l bool')) → ⟦ e ⟧ <> ≡ ⟦ e' ⟧ <> → e ⟶* e'
+corro7 : ∀ l (e e' : Exp [] (T' l bool')) → ⟦ e ⟧ <> ≡ ⟦ e' ⟧ <> → e β≡ e'
 corro7 l e e' p with DCC-strongly-normalising l e | DCC-strongly-normalising l e'
-corro7 l e e' p | inl q | inl r = DCC-confluent q r
-corro7 l e e' p | inr q | inr r = DCC-confluent q r
+corro7 l e e' p | inl q | inl r = η' (ι₀ <>') , q , r
+corro7 l e e' p | inr q | inr r = η' (ι₁ <>') , q , r
 corro7 l e e' p | inr q | inl r rewrite ok-trans <> q | ok-trans <> r = ex-falso (done p)
 corro7 l e e' p | inl q | inr r rewrite ok-trans <> q | ok-trans <> r = ex-falso (done (sym p))
 
@@ -163,5 +166,5 @@ postulate lˆ : L
 -- Note: here we drop the assumption that o satisfies its parametricity condition. (until Agda supports parametricity "well")
 postulate noninterference : ∀{A} {l : L} {o : T l A → T lˆ Bool} → (a₀ a₁ : T l A) → (l ⊑ lˆ → ⊥) → o a₀ ≡ o a₁
 
-Th8 :  forall l A a1 a2 -> (l ⊑ lˆ → ⊥) -> (e : Exp [] (T' l A →' T' lˆ bool')) -> (e ∙ a1) ⟶* (e ∙ a2)
+Th8 :  forall l A a1 a2 -> (l ⊑ lˆ → ⊥) -> (e : Exp [] (T' l A →' T' lˆ bool')) -> (e ∙ a1) β≡ (e ∙ a2)
 Th8 l A a1 a2 p e = corro7 lˆ (e ∙ a1) (e ∙ a2) (noninterference {type A} {l} {⟦ e ⟧ <>} (⟦ a1 ⟧ <>) (⟦ a2 ⟧ <>) p)
