@@ -169,6 +169,6 @@ module X
   -- We have to add `⟦o⟧` as an assumption, because parametricity is not internalised
   -- in Agda
   -- (Theorem 3 in paper)
-  noninterference : ∀{A} {⟦A⟧ : ⟦⋆⟧ A A} {l : L} {o : S l A → S l Bool} → (⟦o⟧ : (⟦S⟧ l ⟦A⟧ ⟦→⟧ ⟦S⟧ lˆ ⟦Bool⟧) o o) → (b₀ b₁ : S l A)
+  noninterference : ∀{A} {⟦A⟧ : ⟦⋆⟧ A A} {l : L} {o : S l A → S lˆ Bool} → (⟦o⟧ : (⟦S⟧ l ⟦A⟧ ⟦→⟧ ⟦S⟧ lˆ ⟦Bool⟧) o o) → (b₀ b₁ : S l A)
                   → (l ⊑ lˆ → ⊥) → o b₀ ≡ o b₁
   noninterference x b₀ b₁ x₁ = x b₀ b₁ (λ p → ex-falso (x₁ p)) ref⊑
